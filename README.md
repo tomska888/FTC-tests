@@ -6,10 +6,10 @@ Runs five FTC checks (URL reputation, headers, geo, DNS) and writes results to a
 
 1. Create & activate a venv:
    ```bash
-   python3 -m venv .venv
+   python -m venv .venv 
+   (or python3)
    .venv\Scripts\Activate.ps1
-   .venv\Scripts\activate.bat
-
+    ```
 2. Install deps
     ```bash
     pip install --upgrade pip

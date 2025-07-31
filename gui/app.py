@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 from urllib.parse import urlparse
 
 from scanner.ftc1      import run_urlscan, run_virustotal
@@ -9,52 +9,85 @@ from scanner.utils     import now
 
 app = Flask(__name__)
 
+TESTS = {
+    "ftc1": {
+        "label": "FTC-0001: URL Reputation Checks",
+        "funcs": [
+            ("urlscan.io verdict", lambda url, dom: run_urlscan(url)),
+            ("VirusTotal detection", lambda url, dom: run_virustotal(url)),
+        ],
+    },
+    "ftc3": {
+        "label": "FTC-0003: Infrastructure Header Analysis",
+        "funcs": [
+            ("Final resolved URL", lambda url, dom: ftc3_headers(url)[0]),
+            ("Web server",          lambda url, dom: ftc3_headers(url)[1]),
+            ("CDN detected",        lambda url, dom: ftc3_headers(url)[2]),
+            ("WAF detected",        lambda url, dom: ftc3_headers(url)[3]),
+            ("Antibot clues",       lambda url, dom: ftc3_headers(url)[4]),
+        ],
+    },
+    "ftc4": {
+        "label": "FTC-0004: IP & Geolocation",
+        "funcs": [
+            ("IPv4 address", lambda url, dom: ftc4_geo(dom)[0]),
+            ("IPv6 address", lambda url, dom: ftc4_geo(dom)[1]),
+            ("ASN number",   lambda url, dom: ftc4_geo(dom)[2]["asn"]),
+            ("ASN company",  lambda url, dom: ftc4_geo(dom)[2]["org"]),
+            ("Country",      lambda url, dom: ftc4_geo(dom)[2]["country"]),
+            ("Region",       lambda url, dom: ftc4_geo(dom)[2]["region"]),
+            ("City",         lambda url, dom: ftc4_geo(dom)[2]["city"]),
+        ],
+    },
+    "ftc5": {
+        "label": "FTC-0005: DNS Records",
+        "funcs": [
+            ("Subdomain CNAME", lambda url, dom: ftc5_dns(dom)[0]),
+            ("Nameserver(s)",   lambda url, dom: ", ".join(ftc5_dns(dom)[1])),
+            ("DNS provider",    lambda url, dom: ftc5_dns(dom)[2]),
+        ],
+    },
+}
+
 @app.route("/", methods=["GET", "POST"])
 def index():
-    result = None
     error = None
+    results = {}
+    chosen = []
 
     if request.method == "POST":
-        url = request.form.get("url", "").strip()
+        url = request.form.get("url","").strip()
+        chosen = request.form.getlist("tests")
         if not url:
             error = "Please enter a URL"
         else:
-            if not url.startswith(("http://", "https://")):
+            if not url.startswith(("http://","https://")):
                 url = "http://" + url
             dom = urlparse(url).netloc or urlparse(url).path
 
-            # run scans (could be slow—consider background task later)
-            try:
-                vs = run_urlscan(url)
-            except Exception as e:
-                vs = f"Error: {e}"
-            vt = run_virustotal(url)
-            final, srv, cdn, waf, bot = ftc3_headers(url)
-            ipv4, ipv6, geo = ftc4_geo(dom)
-            subcname, ns_list, prov = ftc5_dns(dom)
+            # Run only selected tests
+            for tid in chosen:
+                section = TESTS.get(tid)
+                if not section: 
+                    continue
+                rows = []
+                for title, fn in section["funcs"]:
+                    try:
+                        val = fn(url, dom)
+                    except Exception as e:
+                        val = f"Error: {e}"
+                    rows.append((title, val))
+                results[tid] = {
+                    "label": section["label"],
+                    "rows": rows
+                }
 
-            result = {
-                "url": url,
-                "urlscan": vs,
-                "virustotal": vt,
-                "final_url": final,
-                "server": srv,
-                "cdn": cdn,
-                "waf": waf,
-                "antibot": bot,
-                "ipv4": ipv4,
-                "ipv6": ipv6,
-                "asn": geo["asn"],
-                "org": geo["org"],
-                "country": geo["country"],
-                "region": geo["region"],
-                "city": geo["city"],
-                "subcname": subcname,
-                "ns": ns_list,
-                "dns_provider": prov,
-            }
-
-    return render_template("index.html", result=result, error=error)
+    return render_template("index.html",
+                           timestamp=now(),
+                           tests=TESTS,
+                           chosen=chosen,
+                           results=results,
+                           error=error)
 
 if __name__ == "__main__":
     app.run(debug=True)
