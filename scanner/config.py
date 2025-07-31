@@ -1,0 +1,4 @@
+# — CONFIG: fill in your API keys —
+
+URLSCAN_API_KEY = "01985b03-660d-72b5-bb20-5e3dbafe9281"
+VT_API_KEY      = "0011ca67e1ccf6fc18842498f88c4596f21c8c8f624331c11e2f14bca480a408"
