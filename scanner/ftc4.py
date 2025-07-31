@@ -1,6 +1,15 @@
+import re
+import shlex
 import socket
+import subprocess
 import requests
 from typing import Tuple, Dict, Any
+
+# Regex to validate a single full IPv6 address
+_IPV6_PATTERN = re.compile(
+    r'((?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|'
+    r'(?:[0-9A-Fa-f]{1,4}:){1,6}:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})'
+)
 
 def ftc4_geo(domain: str) -> Tuple[str, str, Dict[str, Any]]:
     """
@@ -14,11 +23,25 @@ def ftc4_geo(domain: str) -> Tuple[str, str, Dict[str, Any]]:
     except Exception:
         pass
 
-    # IPv6
+   # 2) IPv6 via nslookup -query=AAAA
     ipv6 = "None"
     try:
-        infos6 = socket.getaddrinfo(domain, None, family=socket.AF_INET6)
-        ipv6 = infos6[0][4][0]
+        cmd = f"nslookup -query=AAAA {domain}"
+        out = subprocess.check_output(
+            shlex.split(cmd),
+            stderr=subprocess.DEVNULL,
+            universal_newlines=True,
+            timeout=10
+        )
+        # find all substrings matching the IPv6 pattern
+        found = _IPV6_PATTERN.findall(out)
+        if found:
+            # de-duplicate while preserving order
+            seen = []
+            for addr in found:
+                if addr not in seen:
+                    seen.append(addr)
+            ipv6 = ", ".join(seen)
     except Exception:
         pass
 
