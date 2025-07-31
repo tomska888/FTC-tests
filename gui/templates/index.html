@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>FTC Scanner GUI</title>
+    <style>
+      body { font-family: sans-serif; max-width: 800px; margin: 2em auto; }
+      input[type="text"] { width: 80%; padding: .5em; }
+      button { padding: .5em 1em; }
+      table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+      th, td { border: 1px solid #ccc; padding: .5em; text-align: left; }
+      .error { color: red; }
+    </style>
+  </head>
+  <body>
+    <h1>FTC Scanner GUI</h1>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+    <form method="post">
+      <input name="url" placeholder="https://example.com" value="{{ result.url if result }}">
+      <button type="submit">Scan</button>
+    </form>
+
+    {% if result %}
+      <h2>Results for {{ result.url }}</h2>
+      <table>
+        <tr><th>Check</th><th>Value</th></tr>
+        <tr><td>urlscan.io verdict</td><td>{{ result.urlscan }}</td></tr>
+        <tr><td>VirusTotal</td><td>{{ result.virustotal }}</td></tr>
+        <tr><td>Final URL</td><td>{{ result.final_url }}</td></tr>
+        <tr><td>Server</td><td>{{ result.server }}</td></tr>
+        <tr><td>CDN</td><td>{{ result.cdn }}</td></tr>
+        <tr><td>WAF</td><td>{{ result.waf }}</td></tr>
+        <tr><td>Antibot clues</td><td>{{ result.antibot }}</td></tr>
+        <tr><td>IPv4</td><td>{{ result.ipv4 }}</td></tr>
+        <tr><td>IPv6</td><td>{{ result.ipv6 }}</td></tr>
+        <tr><td>ASN</td><td>{{ result.asn }} ({{ result.org }})</td></tr>
+        <tr><td>Country</td><td>{{ result.country }}</td></tr>
+        <tr><td>Region</td><td>{{ result.region }}</td></tr>
+        <tr><td>City</td><td>{{ result.city }}</td></tr>
+        <tr><td>Subdomain CNAME</td><td>{{ result.subcname }}</td></tr>
+        <tr><td>Nameservers</td><td>{{ result.ns|join(", ") }}</td></tr>
+        <tr><td>DNS provider</td><td>{{ result.dns_provider }}</td></tr>
+      </table>
+    {% endif %}
+  </body>
+</html>

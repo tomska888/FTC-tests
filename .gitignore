@@ -4,3 +4,7 @@ __pycache__/
 scan_results_*.txt
 .venv/
 /results/
+
+# Flask
+*.pyc
+instance/
