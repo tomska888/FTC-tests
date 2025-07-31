@@ -20,11 +20,11 @@ TESTS = {
     "ftc3": {
         "label": "FTC-0003: Infrastructure Header Analysis",
         "funcs": [
-            ("Final resolved URL", lambda url, dom: ftc3_headers(url)[0]),
-            ("Web server",          lambda url, dom: ftc3_headers(url)[1]),
-            ("CDN detected",        lambda url, dom: ftc3_headers(url)[2]),
-            ("WAF detected",        lambda url, dom: ftc3_headers(url)[3]),
-            ("Antibot clues",       lambda url, dom: ftc3_headers(url)[4]),
+            ("Final resolved URL", lambda url, dom: ftc3_headers(url, dom)[0]),
+            ("Web server",          lambda url, dom: ftc3_headers(url, dom)[1]),
+            ("CDN detected",        lambda url, dom: ftc3_headers(url, dom)[2]),
+            ("WAF detected",        lambda url, dom: ftc3_headers(url, dom)[3]),
+            ("Antibot clues",       lambda url, dom: ftc3_headers(url, dom)[4]),
         ],
     },
     "ftc4": {
@@ -43,6 +43,10 @@ TESTS = {
         "label": "FTC-0005: DNS Records",
         "funcs": [
             ("Subdomain CNAME", lambda url, dom: ftc5_dns(dom)[0]),
+            ("CNAME provider",    lambda url, dom: (
+                        (lambda c: c.split('.',1)[1] if '.' in c else 'None')
+                        (ftc5_dns(dom)[0])
+                    )),
             ("Nameserver(s)",   lambda url, dom: ", ".join(ftc5_dns(dom)[1])),
             ("DNS provider",    lambda url, dom: ftc5_dns(dom)[2]),
         ],
