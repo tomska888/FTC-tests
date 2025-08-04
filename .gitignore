@@ -4,7 +4,7 @@ __pycache__/
 scan_results_*.txt
 .venv/
 /results/
-
+config.py
 # Flask
 *.pyc
 instance/
