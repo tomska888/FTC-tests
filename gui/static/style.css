@@ -111,3 +111,13 @@ body {
   color: #666;
   text-align: right;
 }
+
+/* Make country cells with tooltips stand out */
+.country-cell {
+  color: #d9534f; /* e.g. bootstrap danger red */
+  font-weight: bold;
+}
+/* On hover, you can optionally change background */
+.country-cell:hover {
+  background-color: rgba(217, 83, 79, 0.1);
+}

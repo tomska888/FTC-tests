@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+from markupsafe import Markup
 from urllib.parse import urlparse
 
 from scanner.ftc1      import run_urlscan, run_virustotal
@@ -8,6 +9,17 @@ from scanner.ftc5      import ftc5_dns
 from scanner.utils     import now
 
 app = Flask(__name__)
+
+def format_country(geo: dict) -> Markup:
+    """
+    Return the country name, with a hover‐tooltip if geo['note'] exists.
+    """
+    country = geo.get("country", "None")
+    note    = geo.get("note", "")
+    if note:
+        # This will render: <span title="…">US</span>
+        return Markup(f'<span title="{note}">{country}</span>')
+    return Markup(country)
 
 TESTS = {
     "ftc1": {
@@ -34,7 +46,7 @@ TESTS = {
             ("IPv6 address", lambda url, dom: ftc4_geo(dom)[1]),
             ("ASN number",   lambda url, dom: ftc4_geo(dom)[2]["asn"]),
             ("ASN company",  lambda url, dom: ftc4_geo(dom)[2]["org"]),
-            ("Country",      lambda url, dom: ftc4_geo(dom)[2]["country"]),
+            ("Country",      lambda url, dom: format_country(ftc4_geo(dom)[2])),
             ("Region",       lambda url, dom: ftc4_geo(dom)[2]["region"]),
             ("City",         lambda url, dom: ftc4_geo(dom)[2]["city"]),
         ],
