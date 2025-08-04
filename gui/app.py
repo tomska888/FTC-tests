@@ -15,21 +15,22 @@ from scanner.ftc3  import ftc3_headers
 from scanner.ftc4  import ftc4_geo
 from scanner.ftc5  import ftc5_dns
 from scanner.utils import now, print_table
+from scanner import config
 
 app = Flask(__name__)
 
 # ── OAuth2 Installed-App Flow ──────────────────────────────────────────
 CLIENT_CONFIG = {
     "installed": {
-        "client_id":     "214601769358-s3f9u6bd6h5oo06qniainfiolurmkepo.apps.googleusercontent.com",
-        "client_secret": "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",
+        "client_id":     config.GOOGLE_CLIENT_ID,
+        "client_secret": config.GOOGLE_CLIENT_SECRET,
         "auth_uri":      "https://accounts.google.com/o/oauth2/auth",
         "token_uri":     "https://oauth2.googleapis.com/token",
         "redirect_uris":[ "urn:ietf:wg:oauth:2.0:oob", "http://localhost" ]
     }
 }
 SCOPES = ['https://www.googleapis.com/auth/drive']
-DRIVE_FOLDER_ID = '1MsZqiAjItdSXmV70Ofq0x8oNRIloBqMr'
+DRIVE_FOLDER_ID = config.DRIVE_FOLDER_ID
 
 # Perform OAuth once (disable Flask reloader in __main__ for single prompt)
 flow = InstalledAppFlow.from_client_config(CLIENT_CONFIG, SCOPES)
