@@ -47,6 +47,7 @@ def run_urlscan(url: str) -> str:
 def run_virustotal(url: str) -> str:
     """
     FTC1: submit to VT v3, wait, fetch analysis stats as "malicious/total".
+    Retries up to 2 times if result is "0/0", then skips.
     """
     headers = {"accept": "application/json", "x-apikey": VT_API_KEY}
     try:
@@ -61,16 +62,30 @@ def run_virustotal(url: str) -> str:
     except Exception as e:
         return f"Skipped (VT submission error: {e})"
 
+    # initial wait before fetching
     time.sleep(20)
 
-    try:
-        stats = session.get(
-            f"https://www.virustotal.com/api/v3/analyses/{analysis_id}",
-            headers=headers,
-            timeout=10,
-        ).json()["data"]["attributes"]["stats"]
-        mal = stats.get("malicious", 0)
-        tot = sum(stats.values())
-        return f"{mal}/{tot}"
-    except Exception as e:
-        return f"Skipped (VT fetch error: {e})"
+    max_retries = 2
+    for attempt in range(max_retries + 1):
+        try:
+            resp = session.get(
+                f"https://www.virustotal.com/api/v3/analyses/{analysis_id}",
+                headers=headers,
+                timeout=10,
+            )
+            resp.raise_for_status()
+            stats = resp.json()["data"]["attributes"]["stats"]
+            mal = stats.get("malicious", 0)
+            tot = sum(stats.values())
+            # if we have any results, return immediately
+            if tot > 0:
+                return f"{mal}/{tot}"
+        except Exception as e:
+            last_error = e
+
+        # if this was not the last attempt, wait before retrying
+        if attempt < max_retries:
+            time.sleep(10)
+
+    # after retries, still no data
+    return f"Skipped (VT returned 0/0 after {max_retries + 1} attempts)"

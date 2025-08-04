@@ -3,3 +3,6 @@ dnspython
 Flask
 wafw00f
 git+https://github.com/cisagov/findcdn.git
+google-api-python-client 
+google-auth-httplib2 
+google-auth-oauthlib
