@@ -55,10 +55,7 @@ TESTS = {
         "label": "FTC-0005: DNS Records",
         "funcs": [
             ("Subdomain CNAME", lambda url, dom: ftc5_dns(dom)[0]),
-            ("CNAME provider",    lambda url, dom: (
-                        (lambda c: c.split('.',1)[1] if '.' in c else 'None')
-                        (ftc5_dns(dom)[0])
-                    )),
+            ("CNAME provider",    lambda url, dom: ftc5_dns(dom)[3]),
             ("Nameserver(s)",   lambda url, dom: ", ".join(ftc5_dns(dom)[1])),
             ("DNS provider",    lambda url, dom: ftc5_dns(dom)[2]),
         ],
